@@ -193,6 +193,30 @@ class PairEqualClue(ClueSolver):
         return conclusions
 
 
+class FuzzyGreaterClue(ClueSolver):
+    def __init__(self, item_less, item_more, cat_axis, n_item) -> None:
+        self.item_less = item_less
+        self.item_more = item_more
+        self.cat_axis = cat_axis
+        self.n_item = n_item
+
+    def relation_queries(self):
+        less_queries = []
+        more_queries = []
+        for i in range(self.n_item):
+            less_queries.append((self.item_less, (self.cat_axis, i)))
+            more_queries.append((self.item_more, (self.cat_axis, i)))
+        return less_queries + more_queries
+
+    def draw_clue_conclusions(self, query_response):
+        conclusions = []
+        # If the two items are in different categories, we know they are different
+        if self.item_less[0] != self.item_more[0]:
+            conclusions.append((self.item_less, self.item_more, NEGATIVE))
+        # TODO rest of the basic logic
+        return []
+
+
 class ClueComprehension:
     def do_comprehension(text: str) -> Tuple[bool, str]:
         success, parsed_text = ClueComprehension.check_either_or(text)
