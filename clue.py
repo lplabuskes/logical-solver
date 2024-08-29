@@ -193,7 +193,7 @@ class PairEqualClue(ClueSolver):
         return conclusions
 
 
-class FuzzyGreaterClue(ClueSolver):
+class VagueGreaterClue(ClueSolver):
     def __init__(self, item_less, item_more, cat_axis, n_item) -> None:
         self.item_less = item_less
         self.item_more = item_more
@@ -213,7 +213,43 @@ class FuzzyGreaterClue(ClueSolver):
         # If the two items are in different categories, we know they are different
         if self.item_less[0] != self.item_more[0]:
             conclusions.append((self.item_less, self.item_more, NEGATIVE))
-        # TODO rest of the basic logic
+
+        less_min_possible = None
+        less_positive_relation = None
+        more_max_possible = None
+        more_positive_relation = None
+        for i in range(self.n_item):
+            less_relation = query_response[i][2]
+            if less_relation == POSITIVE:
+                less_positive_relation = i
+            elif less_relation == NEUTRAL and (less_min_possible is None or i < less_min_possible):
+                less_min_possible = i
+
+            more_relation = query_response[i + self.n_item][2]
+            if more_relation == POSITIVE:
+                more_positive_relation = i
+            elif more_relation == NEUTRAL and (more_max_possible is None or i > more_max_possible):
+                more_max_possible = i
+
+        if less_positive_relation is not None and more_positive_relation is not None:
+            # These items are already solved in the axis this clue is about
+            return conclusions
+        elif less_positive_relation is not None:
+            # Can finish out this clue so don't leave neutrals
+            for i in range(less_positive_relation + 1):
+                conclusions.append((self.item_more, (self.cat_axis, i), NEGATIVE))
+        elif more_positive_relation is not None:
+            # Can finish out this clue so don't leave neutrals
+            for i in range(more_positive_relation, self.n_item):
+                conclusions.append((self.item_less, (self.cat_axis, i), NEGATIVE))
+        else:
+            for i in range(self.n_item):
+                less_relation = NEGATIVE if i >= more_max_possible else NEUTRAL
+                more_relation = NEGATIVE if i <= less_min_possible else NEUTRAL
+                target_item = (self.cat_axis, i)
+                conclusions.append((self.item_less, target_item, less_relation))
+                conclusions.append((self.item_more, target_item, more_relation))
+
         return []
 
 
