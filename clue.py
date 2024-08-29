@@ -240,7 +240,7 @@ class VagueGreaterClue(ClueSolver):
 
         if less_positive_relation is not None and more_positive_relation is not None:
             # These items are already solved in the axis this clue is about
-            return conclusions
+            pass
         elif less_positive_relation is not None:
             # Can finish out this clue so don't leave neutrals
             for i in range(less_positive_relation + 1):
@@ -257,7 +257,7 @@ class VagueGreaterClue(ClueSolver):
                 conclusions.append((self.item_less, target_item, less_relation))
                 conclusions.append((self.item_more, target_item, more_relation))
 
-        return []
+        return conclusions
 
 
 class ClueComprehension:
