@@ -260,6 +260,63 @@ class VagueGreaterClue(ClueSolver):
         return conclusions
 
 
+class ExactGreaterClue(ClueSolver):
+    def __init__(self, item_more, item_less, cat_axis, diff, n_item) -> None:
+        self.item_less = item_less
+        self.item_more = item_more
+        self.cat_axis = cat_axis
+        self.diff = diff
+        self.n_item = n_item
+
+    def relation_queries(self):
+        less_queries = []
+        more_queries = []
+        for i in range(self.n_item):
+            less_queries.append((self.item_less, (self.cat_axis, i)))
+            more_queries.append((self.item_more, (self.cat_axis, i)))
+        return less_queries + more_queries
+
+    def draw_clue_conclusions(self, query_response):
+        conclusions = []
+        # If the two items are in different categories, we know they are different
+        if self.item_less[0] != self.item_more[0]:
+            conclusions.append((self.item_less, self.item_more, NEGATIVE))
+
+        less_possibilities = set()
+        less_positive_relation = None
+        more_possibilities = set()
+        more_positive_relation = None
+        for i in range(self.n_item):
+            less_relation = query_response[i][2]
+            if less_relation == POSITIVE:
+                less_positive_relation = i
+            elif less_relation == NEUTRAL:
+                less_possibilities.add(i)
+
+            more_relation = query_response[i + self.n_item][2]
+            if more_relation == POSITIVE:
+                more_positive_relation = i
+            elif more_relation == NEUTRAL:
+                more_possibilities.add(i)
+
+        if less_positive_relation is not None and more_positive_relation is not None:
+            # These items are already solved in the axis this clue is about
+            pass
+        elif less_positive_relation is not None:
+            conclusions.append((self.item_more, (self.cat_axis, less_positive_relation + self.diff), POSITIVE))
+        elif more_positive_relation is not None:
+            conclusions.append((self.item_less, (self.cat_axis, more_positive_relation - self.diff), POSITIVE))
+        else:
+            # TODO logic for matching up blanks
+            for i in range(self.n_item):
+                less_val = NEUTRAL if (i + self.diff) in more_possibilities else NEGATIVE
+                more_val = NEUTRAL if (i - self.diff) in less_possibilities else NEGATIVE
+                conclusions.append((self.item_less, (self.cat_axis, i), less_val))
+                conclusions.append((self.item_more, (self.cat_axis, i), more_val))
+
+        return conclusions
+
+
 class ClueComprehension:
     def do_comprehension(text: str) -> Tuple[bool, str]:
         success, parsed_text = ClueComprehension.check_either_or(text)
