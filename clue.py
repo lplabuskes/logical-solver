@@ -27,6 +27,7 @@ class Clue:
         # Either(A1,B2,C3) i.e. A1 is either B2 or C3
         # PairEqual(A1,B2,C3,D4) i.e. A1 is either C3 or D4, B2 is the other one
         # VagueGreater(B2,C3,A) means that B2 is greater than C3 along A (higher index)
+        # ExactGreater(B2,C3,A,2) means B2 is exactly 2 steps higher than C3 along A
         self.parsed_text = parsed_clue
         self.active = True
         if parsed_clue.startswith("Equal"):
@@ -51,6 +52,13 @@ class Clue:
             item_less = (ord(parts[1][0])-65, int(parts[1][1:])-1)
             cat = ord(parts[2]) - 65
             self.solver = VagueGreaterClue(item_more, item_less, cat, self.n_item)
+        elif parsed_clue.startswith("ExactGreater"):
+            parts = parsed_clue.split("(")[1][:-1].split(",")
+            item_more = (ord(parts[0][0])-65, int(parts[0][1:])-1)
+            item_less = (ord(parts[1][0])-65, int(parts[1][1:])-1)
+            cat = ord(parts[2]) - 65
+            diff = int(parts[3])
+            self.solver = ExactGreaterClue(item_more, item_less, cat, diff, self.n_item)
         else:
             self.solver = UnknownClue()
 
