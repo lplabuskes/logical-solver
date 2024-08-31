@@ -330,6 +330,9 @@ class ClueComprehension:
         success, parsed_text = ClueComprehension.check_either_or(text)
         if success:
             return True, parsed_text
+        success, parsed_text = ClueComprehension.check_neither_nor(text)
+        if success:
+            return True, parsed_text
         success, parsed_text = ClueComprehension.check_pair_equal(text)
         if success:
             return True, parsed_text
@@ -348,6 +351,15 @@ class ClueComprehension:
             return False, ""
         else:
             parsed = f"Either({result.group(1)},{result.group(2)},{result.group(3)})"
+            return True, parsed
+    
+    def check_neither_nor(text: str) -> Tuple[bool, str]:
+        pattern = re.compile(".*[nN]either.*([A-Z]\d+).*nor.*([A-Z]\d+).*([A-Z]\d+).*")
+        result = pattern.match(text)
+        if result is None:
+            return False, ""
+        else:
+            parsed = f"Unique({result.group(1)},{result.group(2)},{result.group(3)})"
             return True, parsed
 
     def check_pair_equal(text: str) -> Tuple[bool, str]:
